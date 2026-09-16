@@ -1,24 +1,11 @@
-import http from "http";
-import { type connection, server as Socket } from "websocket";
+import { config } from "dotenv";
+import { ServerController } from "./controller/ServerController.js";
+import { appConfigSchema } from "./schemas/appConfig.js";
 
-const PORT = 3000;
+config();
 
-const server = http.createServer();
+const port = appConfigSchema.shape.port.parse(process.env.PORT || "3000");
 
-server.listen(PORT, () => {
-  console.log("The application is listening on port: ", PORT);
-});
+const serverController = new ServerController();
 
-const webSocket = new Socket({ httpServer: server });
-
-webSocket.on("request", (request) => {
-  const connection: connection = request.accept();
-
-  connection.send("Hello from server, you are now in");
-
-  connection.on("message", (message) => {
-    // if (message.type === "utf8") console.log(message.utf8Data);
-
-    connection.send("Ok, hello");
-  });
-});
+serverController.establish();
