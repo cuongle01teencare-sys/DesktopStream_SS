@@ -1,3 +1,4 @@
+.yarn
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -17,3 +18,5 @@ node_modules
 .pnp.*
 *.env.*
 *.env
+
+dist
