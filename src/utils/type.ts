@@ -9,3 +9,9 @@ export type Flatten<T> = {
 export type DeepFlatten<T> = {
   [K in keyof T]: T[K] extends object ? DeepFlatten<T> : T[K];
 } & {};
+
+export type ArgumentTypes<F extends (...args: any) => any> = F extends (
+  ...args: infer A
+) => any
+  ? A
+  : never;
