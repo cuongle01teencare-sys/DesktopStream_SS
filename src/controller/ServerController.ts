@@ -23,11 +23,19 @@ export class ServerController {
     return this._port;
   }
 
+  diconnectTo(attendee: Attendee, hallUUID: string = "default") {
+    this._repository.removeAttendeeFromHall(attendee.uuid, hallUUID);
+  }
+
   isAttendeeExistsInHall(attendeeUUID: string, hallUUID: string = "default") {
     return (
       this._repository.getHallById(hallUUID)?.getAttendeeById(attendeeUUID) ||
       null
     );
+  }
+
+  getSizeOf(hallId: string = "default") {
+    return this._repository.getHallById(hallId)?.getAttendeesSize();
   }
 
   private _onRequest() {

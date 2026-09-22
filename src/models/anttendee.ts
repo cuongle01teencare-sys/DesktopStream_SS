@@ -3,6 +3,27 @@ import type { Flatten } from "../utils/type.js";
 import type { ServerController } from "../controller/ServerController.js";
 import type { connection } from "websocket";
 
+const IDLE_TIMEOUT = 60 * 1000; // 60 giây không hoạt động
+
+function resetTimer(timer: NodeJS.Timeout | undefined, attandee: Attendee) {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    console.log(
+      "Time to close the connection due to inactive clients. The threshold is 60 seconds and will be reset after an activity.",
+    );
+    attandee.connection.send(
+      JSON.stringify({
+        type: "idle_timeout",
+      }),
+    );
+    attandee.connection.close(4001, "Idle Timeout");
+  }, IDLE_TIMEOUT);
+
+  console.log(
+    `Timer is set for ${attandee.uuid} and will be reset after ${IDLE_TIMEOUT} of inacivity. Next expiration is: ${timer}`,
+  );
+}
+
 type AttendeeParams = Flatten<Omit<Attendee, "uuid"> & { uuid?: string }>;
 
 type OnStartCallRequestType =
@@ -33,6 +54,7 @@ export class Attendee {
   public readonly name?: string; // Tên của người tham dự, có thể có hoặc không
   public readonly connection: connection;
   public readonly serverController: ServerController;
+  private readonly _timer: NodeJS.Timeout | undefined = undefined;
 
   constructor(params: AttendeeParams) {
     let finalUUID: string | undefined = params.uuid;
@@ -45,8 +67,20 @@ export class Attendee {
     this.connection = params.connection;
     this.serverController = params.serverController;
 
-    if (this.connection)
+    resetTimer(this._timer, this);
+
+    if (this.connection) {
+      this.connection.on("close", () => {
+        console.log(`Client with ${this.uuid} uuid has been disconnected.`);
+        this.serverController.diconnectTo(this);
+        console.log(
+          `Total number of attendee has shrunk: ${this.serverController.getSizeOf()}`,
+        );
+      });
+
       this.connection.on("message", (message) => {
+        resetTimer(this._timer, this);
+
         // @ts-ignore
         const data: OnStartCallRequestType = JSON.parse(message.utf8Data);
 
@@ -135,5 +169,6 @@ export class Attendee {
           }
         }
       });
+    }
   }
 }

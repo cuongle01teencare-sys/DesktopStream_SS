@@ -6,7 +6,7 @@ RUN apk update && apk upgrade --no-cache
 WORKDIR /app
 
 # 2. Copy riêng các file quản lý thư viện (package.json, yarn.lock, .yarnrc.yml)
-COPY package*.json yarn.lock* ./
+COPY package.json yarn.lock .yarnrc.yml ./
 
 # 3. Kích hoạt Corepack để dùng đúng phiên bản Yarn được khai báo trong project
 RUN npm install -g corepack@latest --force && \
@@ -14,7 +14,7 @@ RUN npm install -g corepack@latest --force && \
     corepack install
 
 # 4. Cài đặt thư viện với độ ổn định tuyệt đối (tương đương npm ci)
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 # 5. Copy toàn bộ code vào image
 COPY . .

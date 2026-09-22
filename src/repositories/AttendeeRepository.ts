@@ -14,6 +14,12 @@ export class AttendeeRepository {
       for (const attandee of params.attendees) this.addAttendeeTo(attandee);
   }
 
+  removeAttendeeFromHall(attendeeUUID: string, hallUUID: string = "default") {
+    const hall = this._hallPool.getHallById(hallUUID);
+
+    if (hall) hall.deregister(attendeeUUID);
+  }
+
   addHall(hall: Hall): boolean {
     try {
       this._hallPool.addHall(hall);
